@@ -12,7 +12,7 @@ const downloadSingleFile = async () => {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'single.html'
+    a.download = 'singleHtml.html'
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
@@ -26,9 +26,9 @@ const downloadSingleFile = async () => {
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
   <HelloWorld msg="Hello Vue 3 + Vite" />
-  <div v-if="isSingleFile"> 单文件离线版本 </div>
+  <div v-if="isSingleFile">离线版本</div>
   <button v-if="!isSingleFile" @click="downloadSingleFile" style="margin-top: 20px; padding: 10px 20px;">
-    下载单文件离线版本
+    下载离线版本
   </button>
 </template>
 
