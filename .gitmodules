@@ -1,0 +1,3 @@
+[submodule "jsbip39"]
+	path = jsbip39
+	url = https://github.com/luyhdf/jsbip39
