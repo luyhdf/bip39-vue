@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && vite build --mode single",
+    "build:multi": "vite build",
+    "build:single": "vite build --mode single",
     "serve": "vite preview"
   },
   "dependencies": {
