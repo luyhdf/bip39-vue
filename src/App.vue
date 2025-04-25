@@ -3,6 +3,8 @@
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
 import HelloWorld from './components/HelloWorld.vue'
 
+const isSingleFile = window.location.pathname.includes('singleHtml')
+
 const downloadSingleFile = async () => {
   try {
     const response = await fetch('/bip39-vue/singleHtml/index.html')
@@ -24,7 +26,8 @@ const downloadSingleFile = async () => {
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
   <HelloWorld msg="Hello Vue 3 + Vite" />
-  <button @click="downloadSingleFile" style="margin-top: 20px; padding: 10px 20px;">
+  <div v-if="isSingleFile"> 单文件离线版本 </div>
+  <button v-if="!isSingleFile" @click="downloadSingleFile" style="margin-top: 20px; padding: 10px 20px;">
     下载单文件离线版本
   </button>
 </template>
