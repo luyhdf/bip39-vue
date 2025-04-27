@@ -1,6 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
+defineProps({
+  msg: String
+})
+
+
 const wordCount = ref(12)
 const mnemonic = ref('')
 const suggestions = ref([])
@@ -60,20 +65,6 @@ const handleKeyDown = (event) => {
   }
 }
 
-const pasteFromClipboard = async () => {
-  try {
-    const text = await navigator.clipboard.readText()
-    const words = text.trim().split(/\s+/)
-    if (words.length === 12 || words.length === 24) {
-      inputWords.value = words
-      wordCount.value = words.length
-      status.value = '已完成'
-    }
-  } catch (err) {
-    console.error('无法读取剪贴板:', err)
-  }
-}
-
 onMounted(() => {
   const input = document.getElementById('mnemonicInput')
   if (input) {
@@ -84,8 +75,7 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <h1>助记词生成器</h1>
-    
+    <h1>{{ msg }}</h1>
     <div class="word-count">
       <label>
         <input type="radio" v-model="wordCount" :value="12"> 12个单词
@@ -95,10 +85,7 @@ onMounted(() => {
       </label>
     </div>
 
-    <div class="btn-group">
-      <button class="btn" @click="generateMnemonic">生成助记词</button>
-      <button class="btn btn-secondary" @click="pasteFromClipboard">从剪贴板粘贴</button>
-    </div>
+    <button class="btn" @click="generateMnemonic">生成助记词</button>
 
     <div v-if="mnemonic" class="mnemonic-display">
       <div class="mnemonic-words">

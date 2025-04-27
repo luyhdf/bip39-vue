@@ -1,7 +1,7 @@
 <script setup>
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from './components/HelloWorld.vue'
+// import HelloWorld from './components/HelloWorld.vue'
 import BIP39 from './components/BIP39.vue'
 
 const isSingleFile = window.location.pathname.includes('singleHtml')
@@ -37,8 +37,8 @@ const downloadSingleFile = async () => {
     </div>
   </div>
   <div class="main-content">
-    <HelloWorld msg="Hello Vue 3 + Vite" />
-    <div class="separator">--------------------------------</div>
+    <!-- <HelloWorld msg="Hello Vue 3 + Vite" /> -->
+    <!-- <div class="separator">--------------------------------</div> -->
     <BIP39 msg="BIP39 助记词备份还原工具" />
   </div>
 </template>
@@ -67,9 +67,9 @@ const downloadSingleFile = async () => {
   /* left: 200px; */
 }
 
-.main-content {
+/* .main-content {
   margin-top: 20px;
-}
+} */
 
 .version-tag {
   padding: 4px 8px;
