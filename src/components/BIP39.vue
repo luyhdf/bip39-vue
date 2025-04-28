@@ -205,11 +205,21 @@ watch(inputWords, () => {
           :value="inputWords.join(' ')"
         ></textarea>
       </div>
+
+      <div class="hint">
+        <div class="hint-item">
+          <span>状态:</span>
+          <span :class="['hint-key', { 'valid': isValidMnemonic, 'invalid': !isValidMnemonic }]">
+            {{ status }}
+          </span>
+        </div>
+      </div>
+
     </div>
 
-    <div class="output-container">
-      <div class="suggestions-container">
-        <div class="suggestions">
+    <div class="input-wrapper">
+
+      <div class="suggestions">
           <div 
             v-for="(word, index) in suggestions" 
             :key="index" 
@@ -221,42 +231,33 @@ watch(inputWords, () => {
           </div>
         </div>
       </div>
-      <div class="input-wrapper">
+      
+
+        <p class="input-hint">
+          <span class="hint-text">正在输入第</span>
+          <span class="hint-number">{{ inputWords.length + 1 }}</span>
+          <span class="hint-text">/</span>
+          <span class="hint-number">{{ wordCount }}</span>
+          <span class="hint-text">个单词</span>
+          <span class="hint-key">Tab</span>
+          <span>切换候选词</span>
+          <span class="hint-key">Enter</span>
+          <span>确认输入</span>
+        </p>
+
+        <div class="suggestions-container">
+       
         <textarea 
           v-model="currentInput"
           @input="handleInput"
           @keydown="handleKeyDown"
-          class="output-text"
+          class="input-text"
           placeholder="请输入助记词..."
         ></textarea>
         <button class="clear-btn" @click="clearInput" title="清除输入">
           ESC清除输入
         </button>
       </div>
-      <div class="hint">
-        <div class="hint-item">
-          <span class="hint-key">Tab</span>
-          <span>切换候选词</span>
-        </div>
-        <div class="hint-item">
-          <span class="hint-key">Enter</span>
-          <span>确认输入</span>
-        </div>
-        <div class="hint-item">
-          <span>已输入</span>
-          <span class="hint-key">{{ inputWords.length }}</span>
-          <span>/</span>
-          <span class="hint-key">{{ wordCount }}</span>
-          <span>个单词</span>
-        </div>
-        <div class="hint-item">
-          <span>状态:</span>
-          <span :class="['hint-key', { 'valid': isValidMnemonic, 'invalid': !isValidMnemonic }]">
-            {{ status }}
-          </span>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -451,7 +452,7 @@ h1 {
   padding-left: 2px;
 }
 
-.output-container {
+.status-container {
   margin-top: 20px;
 }
 
@@ -494,7 +495,49 @@ h1 {
   position: relative;
   width: 100%;
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-hint {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  color: #666;
+  white-space: nowrap;
+  display: flex;
   align-items: center;
+  gap: 4px;
+}
+
+.hint-text {
+  color: #666;
+}
+
+.hint-number {
+  color: #4CAF50;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+}
+
+.input-text {
+  width: 100%;
+  height: 40px;
+  padding: 8px 10px;
+  padding-right: 80px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: none;
+  line-height: 24px;
+  font-size: 16px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.input-text:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+  outline: none;
 }
 
 .clear-btn {
@@ -514,19 +557,6 @@ h1 {
 
 .clear-btn:hover {
   color: #666;
-}
-
-.output-text {
-  width: 100%;
-  height: 40px; /* 改为固定高度 */
-  padding: 8px 10px;
-  padding-right: 80px; /* 为清除按钮留出更多空间 */
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  resize: none; /* 禁止调整大小 */
-  line-height: 24px; /* 设置行高 */
-  font-size: 16px; /* 设置字体大小 */
-  overflow: hidden; /* 隐藏滚动条 */
 }
 
 .hint {
