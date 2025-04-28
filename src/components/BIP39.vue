@@ -29,7 +29,7 @@ const updateSuggestions = (input) => {
   }
   suggestions.value = WORDLISTS.english.filter(word => 
     word.startsWith(input.toLowerCase())
-  ).slice(0, 5)
+  ).slice(0, 8)
 }
 
 const handleInput = () => {
@@ -43,9 +43,6 @@ const handleKeyDown = (event) => {
   if (event.key === 'Tab') {
     event.preventDefault()
     if (suggestions.value.length > 0) {
-      const currentWord = suggestions.value[currentWordIndex.value]
-      currentInput.value = currentWord
-      updateSuggestions(currentWord)
       currentWordIndex.value = (currentWordIndex.value + 1) % suggestions.value.length
     }
   } else if (event.key === 'Enter') {
@@ -96,6 +93,14 @@ const clearInput = () => {
 const clearMnemonic = () => {
   inputWords.value = []
   status.value = '未完成'
+}
+
+const handleSuggestionClick = (word) => {
+  currentInput.value = word
+  updateSuggestions(word)
+  // 模拟按下 Enter 键确认输入
+  const event = new KeyboardEvent('keydown', { key: 'Enter' })
+  handleKeyDown(event)
 }
 </script>
 
@@ -153,10 +158,13 @@ const clearMnemonic = () => {
     <div class="output-container">
       <div class="suggestions-container">
         <div class="suggestions">
-          <div v-for="(word, index) in suggestions" :key="index" :class="{ active: index === currentWordIndex }" @click="() => {
-            currentInput.value = word;
-            updateSuggestions(word);
-          }">
+          <div 
+            v-for="(word, index) in suggestions" 
+            :key="index" 
+            :class="{ active: index === currentWordIndex }" 
+            @click="() => handleSuggestionClick(word)"
+            class="suggestion-item"
+          >
             {{ word }}
           </div>
         </div>
@@ -365,19 +373,32 @@ h1 {
 .suggestions {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 8px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
 }
 
-.suggestions div {
-  padding: 5px 10px;
-  background-color: #f0f0f0;
+.suggestion-item {
+  padding: 6px 12px;
+  background-color: white;
+  border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  font-weight: 500;
 }
 
-.suggestions div.active {
+.suggestion-item:hover {
+  background-color: #f0f0f0;
+  border-color: #999;
+}
+
+.suggestion-item.active {
   background-color: #4CAF50;
   color: white;
+  border-color: #4CAF50;
 }
 
 .input-wrapper {
