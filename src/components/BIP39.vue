@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 
 defineProps({
   msg: String
@@ -12,6 +12,7 @@ const inputWords = ref([]) // 存储已输入的单词数组
 const status = ref('未完成') // 当前输入状态：未完成/已完成/已输入x个单词
 const currentInput = ref('') // 当前输入框中的文本内容
 const activeTab = ref('list') // 当前激活的标签页：list-列表形式，text-文本形式
+const isValidMnemonic = ref(false) // 助记词是否有效
 
 const generateMnemonic = () => {
   const strength = wordCount.value === 12 ? 128 : 256
@@ -102,6 +103,53 @@ const handleSuggestionClick = (word) => {
   const event = new KeyboardEvent('keydown', { key: 'Enter' })
   handleKeyDown(event)
 }
+
+const pasteFromClipboard = async () => {
+  try {
+    const text = await navigator.clipboard.readText()
+    const words = text.trim().split(/\s+/)
+    
+    // 检查单词数量是否正确
+    if (words.length !== wordCount.value) {
+      status.value = `单词数量不正确，需要${wordCount.value}个单词`
+      return
+    }
+    
+    // 检查所有单词是否都在词表中
+    const invalidWords = words.filter(word => !WORDLISTS.english.includes(word))
+    if (invalidWords.length > 0) {
+      status.value = `包含无效单词: ${invalidWords.join(', ')}`
+      return
+    }
+    
+    // 更新助记词
+    inputWords.value = words
+    status.value = '已完成'
+    isValidMnemonic.value = true
+  } catch (err) {
+    status.value = '粘贴失败，请重试'
+  }
+}
+
+const checkMnemonicValidity = () => {
+  if (inputWords.value.length !== wordCount.value) {
+    isValidMnemonic.value = false
+    return
+  }
+  
+  const invalidWords = inputWords.value.filter(word => !WORDLISTS.english.includes(word))
+  if (invalidWords.length > 0) {
+    isValidMnemonic.value = false
+    return
+  }
+  
+  isValidMnemonic.value = true
+}
+
+// 监听inputWords变化
+watch(inputWords, () => {
+  checkMnemonicValidity()
+})
 </script>
 
 <template>
@@ -117,6 +165,10 @@ const handleSuggestionClick = (word) => {
       </div>
       <div class="btn-group">
         <button class="btn" @click="generateMnemonic">生成助记词</button>
+        <button class="btn btn-secondary paste-btn" @click="pasteFromClipboard">
+          <span class="paste-icon">📋</span>
+          <span class="paste-text">粘贴助记词</span>
+        </button>
         <button class="btn btn-secondary" @click="clearMnemonic">清除列表</button>
       </div>
     </div>
@@ -199,7 +251,9 @@ const handleSuggestionClick = (word) => {
         </div>
         <div class="hint-item">
           <span>状态:</span>
-          <span class="hint-key">{{ status }}</span>
+          <span :class="['hint-key', { 'valid': isValidMnemonic, 'invalid': !isValidMnemonic }]">
+            {{ status }}
+          </span>
         </div>
       </div>
     </div>
@@ -266,10 +320,45 @@ h1 {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .btn-secondary {
   background-color: #f44336;
+}
+
+.paste-btn {
+  background-color: #2196F3;
+  padding: 10px 15px;
+  gap: 8px;
+}
+
+.paste-btn:hover {
+  background-color: #1976D2;
+}
+
+.paste-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.paste-text {
+  white-space: nowrap;
 }
 
 .mnemonic-display {
@@ -458,6 +547,14 @@ h1 {
   padding: 2px 6px;
   border-radius: 3px;
   font-family: monospace;
+}
+
+.hint-key.valid {
+  color: #4CAF50;
+}
+
+.hint-key.invalid {
+  color: #f44336;
 }
 
 .mnemonic-text {
