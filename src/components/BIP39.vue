@@ -5,13 +5,13 @@ defineProps({
   msg: String
 })
 
-
-const wordCount = ref(12)
-const mnemonic = ref('')
-const suggestions = ref([])
-const currentWordIndex = ref(0)
-const inputWords = ref([])
-const status = ref('未完成')
+const wordCount = ref(12) // 助记词数量，可选12或24个单词
+const mnemonic = ref('') // 存储生成的完整助记词
+const suggestions = ref([]) // 存储当前输入匹配的候选单词列表
+const currentWordIndex = ref(0) // 当前选中的候选单词索引，用于Tab键切换
+const inputWords = ref([]) // 存储已输入的单词数组
+const status = ref('未完成') // 当前输入状态：未完成/已完成/已输入x个单词
+const currentInput = ref('') // 当前输入框中的文本内容
 
 const generateMnemonic = () => {
   const strength = wordCount.value === 12 ? 128 : 256
@@ -32,26 +32,43 @@ const updateSuggestions = (input) => {
   ).slice(0, 5)
 }
 
+const handleInput = () => {
+  updateSuggestions(currentInput.value)
+}
+
 const handleKeyDown = (event) => {
+  console.log(event.key)
   if (event.key === 'Tab') {
     event.preventDefault()
     if (suggestions.value.length > 0) {
-      const currentWord = suggestions.value[currentWordIndex.value]
-      const input = document.getElementById('mnemonicInput')
-      if (input) {
-        input.value = currentWord
-        updateSuggestions(currentWord)
-      }
+      // const currentWord = suggestions.value[currentWordIndex.value]
+      // currentInput.value = currentWord
+      // updateSuggestions(currentWord)
       currentWordIndex.value = (currentWordIndex.value + 1) % suggestions.value.length
     }
   } else if (event.key === 'Enter') {
     event.preventDefault()
-    const input = document.getElementById('mnemonicInput')
-    if (input && input.value) {
-      const word = input.value.trim()
+    if (suggestions.value.length > 0) {
+      // 如果有候选词，使用当前选中的候选词
+      const selectedWord = suggestions.value[currentWordIndex.value]
+      if (WORDLISTS.english.includes(selectedWord)) {
+        inputWords.value.push(selectedWord)
+        currentInput.value = ''
+        suggestions.value = []
+        currentWordIndex.value = 0
+        
+        if (inputWords.value.length === wordCount.value) {
+          status.value = '已完成'
+        } else {
+          status.value = `已输入 ${inputWords.value.length}/${wordCount.value} 个单词`
+        }
+      }
+    } else if (currentInput.value) {
+      // 如果没有候选词，使用当前输入
+      const word = currentInput.value.trim()
       if (WORDLISTS.english.includes(word)) {
         inputWords.value.push(word)
-        input.value = ''
+        currentInput.value = ''
         suggestions.value = []
         currentWordIndex.value = 0
         
@@ -62,32 +79,44 @@ const handleKeyDown = (event) => {
         }
       }
     }
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    clearInput()
   }
 }
 
-onMounted(() => {
-  const input = document.getElementById('mnemonicInput')
-  if (input) {
-    input.addEventListener('input', (e) => updateSuggestions(e.target.value))
-  }
-})
+const clearInput = () => {
+  currentInput.value = ''
+  suggestions.value = []
+  currentWordIndex.value = 0
+}
+
+const clearMnemonic = () => {
+  inputWords.value = []
+  status.value = '未完成'
+}
 </script>
 
 <template>
   <div class="container">
     <h1>{{ msg }}</h1>
-    <div class="word-count">
-      <label>
-        <input type="radio" v-model="wordCount" :value="12"> 12个单词
-      </label>
-      <label style="margin-left: 20px;">
-        <input type="radio" v-model="wordCount" :value="24"> 24个单词
-      </label>
+
+    <div class="control-row">
+      <div class="word-count">
+        <label>
+          <input type="radio" v-model="wordCount" :value="12"> 12个单词
+        </label>
+        <label>
+          <input type="radio" v-model="wordCount" :value="24"> 24个单词
+        </label>
+      </div>
+      <div class="btn-group">
+        <button class="btn" @click="generateMnemonic">生成助记词</button>
+        <button class="btn btn-secondary" @click="clearMnemonic">清除列表</button>
+      </div>
     </div>
 
-    <button class="btn" @click="generateMnemonic">生成助记词</button>
-
-    <div v-if="mnemonic" class="mnemonic-display">
+    <div  class="mnemonic-display">
       <div class="mnemonic-words">
         <div v-for="(word, index) in inputWords" :key="index" class="mnemonic-word">
           <span class="word-number">{{ index + 1 }}</span>
@@ -99,17 +128,26 @@ onMounted(() => {
     <div class="output-container">
       <div class="suggestions-container">
         <div class="suggestions">
-          <div v-for="(word, index) in suggestions" 
-               :key="index"
-               :class="{ active: index === currentWordIndex }">
+          <div v-for="(word, index) in suggestions" :key="index" :class="{ active: index === currentWordIndex }" @click="() => {
+            currentInput.value = word;
+            updateSuggestions(word);
+          }">
             {{ word }}
           </div>
         </div>
       </div>
-      <textarea id="mnemonicInput" 
-                class="output-text"
-                @keydown="handleKeyDown"
-                placeholder="请输入助记词..."></textarea>
+      <div class="input-wrapper">
+        <textarea 
+          v-model="currentInput"
+          @input="handleInput"
+          @keydown="handleKeyDown"
+          class="output-text"
+          placeholder="请输入助记词..."
+        ></textarea>
+        <button class="clear-btn" @click="clearInput" title="清除输入">
+          ESC清除输入
+        </button>
+      </div>
       <div class="hint">
         <div class="hint-item">
           <span class="hint-key">Tab</span>
@@ -148,16 +186,21 @@ h1 {
   margin-bottom: 30px;
 }
 
-.word-count {
+.control-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin: 20px 0;
-  text-align: center;
+}
+
+.word-count {
+  display: flex;
+  gap: 20px;
 }
 
 .btn-group {
   display: flex;
-  justify-content: center;
   gap: 10px;
-  margin: 20px 0;
 }
 
 .btn {
@@ -170,7 +213,7 @@ h1 {
 }
 
 .btn-secondary {
-  background-color: #2196F3;
+  background-color: #f44336;
 }
 
 .mnemonic-display {
@@ -182,7 +225,7 @@ h1 {
 
 .mnemonic-words {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
@@ -192,18 +235,23 @@ h1 {
   padding: 8px;
   background-color: white;
   border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 0;
 }
 
 .word-number {
   color: #666;
   margin-right: 8px;
   font-size: 0.9em;
+  min-width: 20px;
 }
 
 .word-text {
   font-family: monospace;
   font-size: 1.1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .output-container {
@@ -232,13 +280,43 @@ h1 {
   color: white;
 }
 
+.input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.clear-btn:hover {
+  color: #666;
+}
+
 .output-text {
   width: 100%;
-  height: 100px;
-  padding: 10px;
+  height: 40px; /* 改为固定高度 */
+  padding: 8px 10px;
+  padding-right: 80px; /* 为清除按钮留出更多空间 */
   border: 1px solid #ddd;
   border-radius: 4px;
-  resize: vertical;
+  resize: none; /* 禁止调整大小 */
+  line-height: 24px; /* 设置行高 */
+  font-size: 16px; /* 设置字体大小 */
+  overflow: hidden; /* 隐藏滚动条 */
 }
 
 .hint {
