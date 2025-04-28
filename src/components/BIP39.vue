@@ -205,33 +205,32 @@ watch(inputWords, () => {
 
     </div>
 
-    <div class="input-wrapper">
-      <div class="input-container">
-
+    <div class="input-container">
+      <div class="input-row">
         <div class="input-hint">
           <p>
-            <span class="hint-text">正在输入第</span>
+            <span class="hint-text">输入第</span>
             <span class="hint-number">{{ inputWords.length + 1 }}</span>
             <span class="hint-text">/</span>
             <span class="hint-number">{{ wordCount }}</span>
             <span class="hint-text">个单词</span>
           </p>
-
         </div>
-
         <div class="input-box">
+         
           <textarea v-model="currentInput" @input="handleInput" @keydown="handleKeyDown" class="input-text"
             placeholder="请输入助记词..."></textarea>
-          <div class="suggestions">
-            <div v-for="(word, index) in suggestions" :key="index" :class="{ active: index === currentWordIndex }"
-              @click="() => handleSuggestionClick(word)" class="suggestion-item">
-              {{ word }}
-            </div>
-          </div>
-
           <button class="clear-btn" @click="clearInput" title="清除输入">
-            ESC
+            ESC清除
           </button>
+        </div>
+      </div>
+
+      <div class="suggestions">
+         <p>候选词</p>
+        <div v-for="(word, index) in suggestions" :key="index" :class="{ active: index === currentWordIndex }"
+          @click="() => handleSuggestionClick(word)" class="suggestion-item">
+          {{ word }}
         </div>
       </div>
 
@@ -251,8 +250,6 @@ watch(inputWords, () => {
       </div>
     </div>
   </div>
-
-
 </template>
 
 <style scoped>
@@ -461,6 +458,10 @@ h1 {
   padding: 8px;
   background-color: #f8f9fa;
   border-radius: 4px;
+  /* width: 100%;
+  min-height: 50px;
+  box-sizing: border-box;
+  margin-top: 8px; */
 }
 
 .suggestion-item {
@@ -472,6 +473,10 @@ h1 {
   transition: all 0.2s ease;
   font-size: 16px;
   font-weight: 500;
+  /* min-width: 100px; */
+  /* text-align: center;
+  flex: 1; */
+  /* max-width: calc(25% - 8px); */
 }
 
 .suggestion-item:hover {
@@ -483,14 +488,6 @@ h1 {
   background-color: #4CAF50;
   color: white;
   border-color: #4CAF50;
-}
-
-.input-wrapper {
-  margin-top: 20px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .input-container {
@@ -516,20 +513,21 @@ h1 {
 
 .input-box {
   position: relative;
-  width: 100%;
+  width: 200px; /* 设置固定宽度 */
 }
 
 .input-text {
   width: 100%;
   height: 40px;
-  padding: 8px 40px 8px 12px;
+  padding: 8px 50px 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   resize: none;
-  line-height: 24px;
+  line-height: 40px; /* 与高度相同，实现上下居中 */
   font-size: 16px;
   transition: all 0.2s ease;
   background-color: white;
+  text-align: left; /* 水平靠左对齐 */
 }
 
 .input-text:focus {
@@ -540,17 +538,22 @@ h1 {
 
 .clear-btn {
   position: absolute;
-  right: 8px;
+  right: 0;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%); /* 垂直居中 */
+  height: 40px;
+  width: 40px;
   background: none;
   border: none;
   font-size: 14px;
   color: #999;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 0;
+  border-radius: 0 4px 4px 0;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .clear-btn:hover {
