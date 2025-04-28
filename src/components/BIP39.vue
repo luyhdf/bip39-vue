@@ -11,6 +11,7 @@ const currentWordIndex = ref(0) // 当前选中的候选单词索引，用于Tab
 const inputWords = ref([]) // 存储已输入的单词数组
 const status = ref('未完成') // 当前输入状态：未完成/已完成/已输入x个单词
 const currentInput = ref('') // 当前输入框中的文本内容
+const activeTab = ref('list') // 当前激活的标签页：list-列表形式，text-文本形式
 
 const generateMnemonic = () => {
   const strength = wordCount.value === 12 ? 128 : 256
@@ -104,12 +105,10 @@ const clearMnemonic = () => {
 
     <div class="control-row">
       <div class="word-count">
-        <label>
-          <input type="radio" v-model="wordCount" :value="12"> 12个单词
-        </label>
-        <label>
-          <input type="radio" v-model="wordCount" :value="24"> 24个单词
-        </label>
+        <select v-model="wordCount" class="word-select">
+          <option :value="12">12个单词</option>
+          <option :value="24">24个单词</option>
+        </select>
       </div>
       <div class="btn-group">
         <button class="btn" @click="generateMnemonic">生成助记词</button>
@@ -118,11 +117,36 @@ const clearMnemonic = () => {
     </div>
 
     <div class="mnemonic-display">
-      <div class="mnemonic-words">
+      <div class="tabs">
+        <button 
+          class="tab-btn" 
+          :class="{ active: activeTab === 'list' }"
+          @click="activeTab = 'list'"
+        >
+          列表形式
+        </button>
+        <button 
+          class="tab-btn" 
+          :class="{ active: activeTab === 'text' }"
+          @click="activeTab = 'text'"
+        >
+          文本形式
+        </button>
+      </div>
+
+      <div v-if="activeTab === 'list'" class="mnemonic-words">
         <div v-for="index in wordCount" :key="index" class="mnemonic-word">
           <span class="word-number">{{ index }}.</span>
           <span class="word-text">{{ inputWords[index - 1] || '' }}</span>
         </div>
+      </div>
+
+      <div v-else class="mnemonic-text">
+        <textarea 
+          class="text-area"
+          readonly
+          :value="inputWords.join(' ')"
+        ></textarea>
       </div>
     </div>
 
@@ -189,14 +213,37 @@ h1 {
 
 .control-row {
   display: flex;
-  justify-content: space-between;
+  gap: 20px;
   align-items: center;
   margin: 20px 0;
 }
 
 .word-count {
   display: flex;
-  gap: 20px;
+  align-items: center;
+}
+
+.word-select {
+  padding: 8px 12px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+  background-color: white;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.word-select:hover {
+  border-color: #999;
+}
+
+.word-select:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
 }
 
 .btn-group {
@@ -223,6 +270,42 @@ h1 {
   background-color: #f8f9fa;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #eee;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: #333;
+}
+
+.tab-btn.active {
+  color: #4CAF50;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #4CAF50;
 }
 
 .mnemonic-words {
@@ -354,6 +437,23 @@ h1 {
   padding: 2px 6px;
   border-radius: 3px;
   font-family: monospace;
+}
+
+.mnemonic-text {
+  margin-top: 10px;
+}
+
+.text-area {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  font-size: 24px;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  background-color: white;
+  line-height: 1.5;
 }
 
 /* 响应式布局 */
