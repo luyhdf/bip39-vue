@@ -213,21 +213,18 @@ watch(inputWords, () => {
             <span class="hint-number">{{ inputWords.length + 1 }}</span>
             <span class="hint-text">/</span>
             <span class="hint-number">{{ wordCount }}</span>
-            <span class="hint-text">个单词</span>
+            <span class="hint-text">个单词:</span>
           </p>
         </div>
-        <div class="input-box">
-         
+        <div class="input-box">  
           <textarea v-model="currentInput" @input="handleInput" @keydown="handleKeyDown" class="input-text"
             placeholder="请输入助记词..."></textarea>
-          <button class="clear-btn" @click="clearInput" title="清除输入">
-            ESC清除
-          </button>
+          <p class="invalid-word"></p>
         </div>
       </div>
 
       <div class="suggestions">
-         <p>候选词</p>
+         <p>候选词:</p>
         <div v-for="(word, index) in suggestions" :key="index" :class="{ active: index === currentWordIndex }"
           @click="() => handleSuggestionClick(word)" class="suggestion-item">
           {{ word }}
@@ -473,10 +470,12 @@ h1 {
   transition: all 0.2s ease;
   font-size: 16px;
   font-weight: 500;
-  /* min-width: 100px; */
-  /* text-align: center;
-  flex: 1; */
-  /* max-width: calc(25% - 8px); */
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  line-height: 1;
 }
 
 .suggestion-item:hover {
@@ -499,32 +498,32 @@ h1 {
 .input-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
 }
 
 .input-hint {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 16px;
+  font-size: 18px;
   color: #666;
   white-space: nowrap;
 }
 
 .input-box {
   position: relative;
-  width: 200px; /* 设置固定宽度 */
+  width: 200px; 
 }
 
 .input-text {
   width: 100%;
-  height: 40px;
+  height: 30px;
   padding: 8px 50px 8px 12px;
-  border: 1px solid #ddd;
+  border: 2px solid #ddd;
   border-radius: 4px;
   resize: none;
-  line-height: 40px; /* 与高度相同，实现上下居中 */
-  font-size: 16px;
+  line-height: 30px; /* 与高度相同，实现上下居中 */
+  font-size: 20px;
   transition: all 0.2s ease;
   background-color: white;
   text-align: left; /* 水平靠左对齐 */
@@ -536,30 +535,6 @@ h1 {
   outline: none;
 }
 
-.clear-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%); /* 垂直居中 */
-  height: 40px;
-  width: 40px;
-  background: none;
-  border: none;
-  font-size: 14px;
-  color: #999;
-  cursor: pointer;
-  padding: 0;
-  border-radius: 0 4px 4px 0;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.clear-btn:hover {
-  background-color: #f0f0f0;
-  color: #666;
-}
 
 .shortcut-hints {
   display: flex;
@@ -571,7 +546,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 14px;
+  font-size: 16px;
   color: #666;
 }
 
