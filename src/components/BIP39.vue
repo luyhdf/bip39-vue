@@ -28,7 +28,7 @@ const updateSuggestions = (input) => {
     suggestions.value = []
     return
   }
-  suggestions.value = WORDLISTS.english.filter(word => 
+  suggestions.value = WORDLISTS.english.filter(word =>
     word.startsWith(input.toLowerCase())
   ).slice(0, 8)
 }
@@ -56,7 +56,7 @@ const handleKeyDown = (event) => {
         currentInput.value = ''
         suggestions.value = []
         currentWordIndex.value = 0
-        
+
         if (inputWords.value.length === wordCount.value) {
           status.value = '已完成'
         } else {
@@ -71,7 +71,7 @@ const handleKeyDown = (event) => {
         currentInput.value = ''
         suggestions.value = []
         currentWordIndex.value = 0
-        
+
         if (inputWords.value.length === wordCount.value) {
           status.value = '已完成'
         } else {
@@ -108,20 +108,20 @@ const pasteFromClipboard = async () => {
   try {
     const text = await navigator.clipboard.readText()
     const words = text.trim().split(/\s+/)
-    
+
     // 检查单词数量是否正确
     if (words.length !== wordCount.value) {
       status.value = `单词数量不正确，需要${wordCount.value}个单词`
       return
     }
-    
+
     // 检查所有单词是否都在词表中
     const invalidWords = words.filter(word => !WORDLISTS.english.includes(word))
     if (invalidWords.length > 0) {
       status.value = `包含无效单词: ${invalidWords.join(', ')}`
       return
     }
-    
+
     // 更新助记词
     inputWords.value = words
     status.value = '已完成'
@@ -136,13 +136,13 @@ const checkMnemonicValidity = () => {
     isValidMnemonic.value = false
     return
   }
-  
+
   const invalidWords = inputWords.value.filter(word => !WORDLISTS.english.includes(word))
   if (invalidWords.length > 0) {
     isValidMnemonic.value = false
     return
   }
-  
+
   isValidMnemonic.value = true
 }
 
@@ -175,18 +175,10 @@ watch(inputWords, () => {
 
     <div class="mnemonic-display">
       <div class="tabs">
-        <button 
-          class="tab-btn" 
-          :class="{ active: activeTab === 'list' }"
-          @click="activeTab = 'list'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'list' }" @click="activeTab = 'list'">
           列表形式
         </button>
-        <button 
-          class="tab-btn" 
-          :class="{ active: activeTab === 'text' }"
-          @click="activeTab = 'text'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'text' }" @click="activeTab = 'text'">
           文本形式
         </button>
       </div>
@@ -199,11 +191,7 @@ watch(inputWords, () => {
       </div>
 
       <div v-else class="mnemonic-text">
-        <textarea 
-          class="text-area"
-          readonly
-          :value="inputWords.join(' ')"
-        ></textarea>
+        <textarea class="text-area" readonly :value="inputWords.join(' ')"></textarea>
       </div>
 
       <div class="hint">
@@ -218,47 +206,53 @@ watch(inputWords, () => {
     </div>
 
     <div class="input-wrapper">
+      <div class="input-container">
 
-      <div class="suggestions">
-          <div 
-            v-for="(word, index) in suggestions" 
-            :key="index" 
-            :class="{ active: index === currentWordIndex }" 
-            @click="() => handleSuggestionClick(word)"
-            class="suggestion-item"
-          >
-            {{ word }}
+        <div class="input-hint">
+          <p>
+            <span class="hint-text">正在输入第</span>
+            <span class="hint-number">{{ inputWords.length + 1 }}</span>
+            <span class="hint-text">/</span>
+            <span class="hint-number">{{ wordCount }}</span>
+            <span class="hint-text">个单词</span>
+          </p>
+
+        </div>
+
+        <div class="input-box">
+          <textarea v-model="currentInput" @input="handleInput" @keydown="handleKeyDown" class="input-text"
+            placeholder="请输入助记词..."></textarea>
+          <div class="suggestions">
+            <div v-for="(word, index) in suggestions" :key="index" :class="{ active: index === currentWordIndex }"
+              @click="() => handleSuggestionClick(word)" class="suggestion-item">
+              {{ word }}
+            </div>
           </div>
+
+          <button class="clear-btn" @click="clearInput" title="清除输入">
+            ESC
+          </button>
         </div>
       </div>
-      
 
-        <p class="input-hint">
-          <span class="hint-text">正在输入第</span>
-          <span class="hint-number">{{ inputWords.length + 1 }}</span>
-          <span class="hint-text">/</span>
-          <span class="hint-number">{{ wordCount }}</span>
-          <span class="hint-text">个单词</span>
+      <div class="shortcut-hints">
+        <div class="hint-item">
           <span class="hint-key">Tab</span>
           <span>切换候选词</span>
+        </div>
+        <div class="hint-item">
           <span class="hint-key">Enter</span>
           <span>确认输入</span>
-        </p>
-
-        <div class="suggestions-container">
-       
-        <textarea 
-          v-model="currentInput"
-          @input="handleInput"
-          @keydown="handleKeyDown"
-          class="input-text"
-          placeholder="请输入助记词..."
-        ></textarea>
-        <button class="clear-btn" @click="clearInput" title="清除输入">
-          ESC清除输入
-        </button>
+        </div>
+        <div class="hint-item">
+          <span class="hint-key">ESC</span>
+          <span>清除输入</span>
+        </div>
       </div>
+    </div>
   </div>
+
+
 </template>
 
 <style scoped>
@@ -492,46 +486,50 @@ h1 {
 }
 
 .input-wrapper {
-  position: relative;
-  width: 100%;
+  margin-top: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.input-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .input-hint {
-  margin: 0;
-  padding: 0;
-  font-size: 14px;
-  color: #666;
-  white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.hint-text {
+  font-size: 16px;
   color: #666;
+  white-space: nowrap;
 }
 
-.hint-number {
-  color: #4CAF50;
-  font-weight: 600;
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+.input-box {
+  position: relative;
+  width: 100%;
 }
 
 .input-text {
   width: 100%;
   height: 40px;
-  padding: 8px 10px;
-  padding-right: 80px;
+  padding: 8px 40px 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   resize: none;
   line-height: 24px;
   font-size: 16px;
-  overflow: hidden;
   transition: all 0.2s ease;
+  background-color: white;
 }
 
 .input-text:focus {
@@ -542,7 +540,7 @@ h1 {
 
 .clear-btn {
   position: absolute;
-  right: 10px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -550,13 +548,36 @@ h1 {
   font-size: 14px;
   color: #999;
   cursor: pointer;
-  padding: 0 5px;
-  line-height: 1;
-  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .clear-btn:hover {
+  background-color: #f0f0f0;
   color: #666;
+}
+
+.shortcut-hints {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.hint-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: #666;
+}
+
+.hint-key {
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 13px;
 }
 
 .hint {
@@ -608,6 +629,21 @@ h1 {
 @media (max-width: 768px) {
   .mnemonic-words {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .input-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .input-box {
+    width: 100%;
+  }
+
+  .shortcut-hints {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }
 
