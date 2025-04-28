@@ -140,13 +140,9 @@ const checkMnemonicValidity = () => {
     return
   }
 
-  const invalidWords = inputWords.value.filter(word => !WORDLISTS.english.includes(word))
-  if (invalidWords.length > 0) {
-    isValidMnemonic.value = false
-    return
-  }
-
-  isValidMnemonic.value = true
+  const mnemonic = inputWords.value.join(' ')
+  const mnemonicObj = new Mnemonic("english")
+  isValidMnemonic.value = mnemonicObj.check(mnemonic)
 }
 
 // 监听inputWords变化
@@ -203,6 +199,8 @@ watch(inputWords, () => {
           <span :class="['hint-key', { 'valid': isValidMnemonic, 'invalid': !isValidMnemonic }]">
             {{ status }}
           </span>
+          <span v-if="isValidMnemonic">有效助记</span>
+          <span v-else>无效助记</span>
         </div>
       </div>
 
