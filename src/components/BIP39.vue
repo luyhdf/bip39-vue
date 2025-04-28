@@ -6,7 +6,6 @@ defineProps({
 })
 
 const wordCount = ref(12) // 助记词数量，可选12或24个单词
-const mnemonic = ref('') // 存储生成的完整助记词
 const suggestions = ref([]) // 存储当前输入匹配的候选单词列表
 const currentWordIndex = ref(0) // 当前选中的候选单词索引，用于Tab键切换
 const inputWords = ref([]) // 存储已输入的单词数组
@@ -16,8 +15,8 @@ const currentInput = ref('') // 当前输入框中的文本内容
 const generateMnemonic = () => {
   const strength = wordCount.value === 12 ? 128 : 256
   const mnemonicObj = new Mnemonic("english")
-  mnemonic.value = mnemonicObj.generate(strength)
-  inputWords.value = mnemonic.value.split(' ')
+  const mnemonicStr = mnemonicObj.generate(strength)
+  inputWords.value = mnemonicStr.split(' ')
   currentWordIndex.value = 0
   status.value = '已完成'
 }
@@ -33,17 +32,19 @@ const updateSuggestions = (input) => {
 }
 
 const handleInput = () => {
+  // 只保留字母，转换为小写
+  currentInput.value = currentInput.value.replace(/[^a-zA-Z]/g, '').toLowerCase()
   updateSuggestions(currentInput.value)
 }
 
 const handleKeyDown = (event) => {
-  console.log(event.key)
+
   if (event.key === 'Tab') {
     event.preventDefault()
     if (suggestions.value.length > 0) {
-      // const currentWord = suggestions.value[currentWordIndex.value]
-      // currentInput.value = currentWord
-      // updateSuggestions(currentWord)
+      const currentWord = suggestions.value[currentWordIndex.value]
+      currentInput.value = currentWord
+      updateSuggestions(currentWord)
       currentWordIndex.value = (currentWordIndex.value + 1) % suggestions.value.length
     }
   } else if (event.key === 'Enter') {
@@ -116,11 +117,11 @@ const clearMnemonic = () => {
       </div>
     </div>
 
-    <div  class="mnemonic-display">
+    <div class="mnemonic-display">
       <div class="mnemonic-words">
-        <div v-for="(word, index) in inputWords" :key="index" class="mnemonic-word">
-          <span class="word-number">{{ index + 1 }}</span>
-          <span class="word-text">{{ word }}</span>
+        <div v-for="index in wordCount" :key="index" class="mnemonic-word">
+          <span class="word-number">{{ index }}.</span>
+          <span class="word-text">{{ inputWords[index - 1] || '' }}</span>
         </div>
       </div>
     </div>
@@ -221,37 +222,53 @@ h1 {
   padding: 20px;
   background-color: #f8f9fa;
   border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .mnemonic-words {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .mnemonic-word {
   display: flex;
   align-items: center;
-  padding: 8px;
+  padding: 8px 10px;
   background-color: white;
-  border-radius: 4px;
+  border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   min-width: 0;
+  min-height: 40px;
+  transition: all 0.2s ease;
+}
+
+.mnemonic-word:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 .word-number {
-  color: #666;
+  color: #999;
   margin-right: 8px;
-  font-size: 0.9em;
-  min-width: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  min-width: 10px;
+  text-align: right;
 }
 
 .word-text {
-  font-family: monospace;
-  font-size: 1.1em;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  letter-spacing: 0.5px;
+  text-align: left;
+  padding-left: 2px;
 }
 
 .output-container {
@@ -337,5 +354,18 @@ h1 {
   padding: 2px 6px;
   border-radius: 3px;
   font-family: monospace;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .mnemonic-words {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .mnemonic-words {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
