@@ -13,6 +13,7 @@ const status = ref('未完成') // 当前输入状态：未完成/已完成/已�
 const currentInput = ref('') // 当前输入框中的文本内容
 const activeTab = ref('list') // 当前激活的标签页：list-列表形式，text-文本形式
 const isValidMnemonic = ref(false) // 助记词是否有效
+const isWordValid = ref(false) // 当前输入单词是否有效
 
 const generateMnemonic = () => {
   const strength = wordCount.value === 12 ? 128 : 256
@@ -36,6 +37,8 @@ const updateSuggestions = (input) => {
 const handleInput = () => {
   // 只保留字母，转换为小写
   currentInput.value = currentInput.value.replace(/[^a-zA-Z]/g, '').toLowerCase()
+  // 检查输入的前几个字母是否在词库中
+  isWordValid.value = WORDLISTS.english.some(word => word.startsWith(currentInput.value))
   updateSuggestions(currentInput.value)
 }
 
@@ -167,7 +170,7 @@ watch(inputWords, () => {
         <button class="btn" @click="generateMnemonic">生成助记词</button>
         <button class="btn btn-secondary paste-btn" @click="pasteFromClipboard">
           <span class="paste-icon">📋</span>
-          <span class="paste-text">粘贴助记词</span>
+          <span class="paste-text">从剪切板粘贴</span>
         </button>
         <button class="btn btn-secondary" @click="clearMnemonic">清除列表</button>
       </div>
@@ -219,7 +222,9 @@ watch(inputWords, () => {
         <div class="input-box">  
           <textarea v-model="currentInput" @input="handleInput" @keydown="handleKeyDown" class="input-text"
             placeholder="请输入助记词..."></textarea>
-          <p class="invalid-word"></p>
+          <p class="word-validity" :class="{ valid: isWordValid, invalid: !isWordValid && currentInput }">
+            {{ isWordValid ? '✓' : currentInput ? '✗' : '' }}
+          </p>
         </div>
       </div>
 
@@ -586,6 +591,13 @@ h1 {
   color: #f44336;
 }
 
+.hint-number {
+  font-weight: 600;
+  color: #1f9b30;
+  font-size: 16px;
+  margin: 0 2px;
+}
+
 .mnemonic-text {
   margin-top: 10px;
 }
@@ -601,6 +613,26 @@ h1 {
   resize: vertical;
   background-color: white;
   line-height: 1.5;
+}
+
+.word-validity {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  width: 20px;
+  text-align: center;
+}
+
+.word-validity.valid {
+  color: #4CAF50;
+}
+
+.word-validity.invalid {
+  color: #f44336;
 }
 
 /* 响应式布局 */
