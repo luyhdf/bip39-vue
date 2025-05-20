@@ -1,4 +1,4 @@
-import { MemoryBlockDevice, LFS, LFS_O_CREAT, LFS_O_RDONLY, LFS_O_TRUNC, LFS_O_WRONLY } from "../src/littlefs/lfs_js.js";
+import { MemoryBlockDevice, LFS, LFS_O_CREAT, LFS_O_RDONLY, LFS_O_TRUNC, LFS_O_WRONLY } from "../src/js/littlefs/lfs_js.js";
 
 // console.log(Module);
 

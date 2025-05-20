@@ -1,0 +1,1 @@
+https://github.com/3fffff/webusb-ch341
