@@ -1,52 +1,103 @@
 import { BlockDevice } from "../littlefs/lfs_js.js";
+import { CH341 } from "./CH341.js";
+import { I2C } from "./I2C.js";
 
 export class EEPROMBlockDevice extends BlockDevice {
-    constructor (block_size, block_count) {
+    constructor(i2c, block_size = 32, block_count = 128) {
         super();
+        this.i2c = i2c;
         this.read_size = block_size;
         this.prog_size = block_size;
         this.block_size = block_size;
         this.block_count = block_count;
-        this._storage = [];
+        this.page_size = 32; // EEPROM 页大小
     }
-    async read (block, off, buffer, size) {
+
+    // 计算物理地址
+    _getPhysicalAddress(block, off) {
+        return (block * this.block_size) + off;
+    }
+
+    // 读取数据
+    async read(block, off, buffer, size) {
         if (this.onread) {
             if (this.onread(block, off, size) == false) {
                 return 0;
             }
         }
 
-        if (!this._storage[ block ]) {
-            this._storage[ block ] = new Uint8Array(this.block_size);
+        try {
+            // 计算物理地址
+            const addr = this._getPhysicalAddress(block, off);
+            
+            // 读取数据
+            const data = await this.i2c.ReadData(addr, size, true);
+            
+            // 将数据复制到目标缓冲区
+            if (Array.isArray(data)) {
+                // 处理分块读取的情况
+                let offset = 0;
+                for (const chunk of data) {
+                    Module.HEAPU8.set(new Uint8Array(chunk), buffer + offset);
+                    offset += chunk.byteLength;
+                }
+            } else {
+                Module.HEAPU8.set(new Uint8Array(data), buffer);
+            }
+            
+            return 0;
+        } catch (error) {
+            console.error("EEPROM read error:", error);
+            return -1;
         }
-
-        Module.HEAPU8.set(
-            new Uint8Array(this._storage[ block ].buffer, off, size),
-            buffer);
-        return 0;
     }
-    async prog (block, off, buffer, size) {
+
+    // 写入数据
+    async prog(block, off, buffer, size) {
         if (this.onprog) {
             if (this.onprog(block, off, size) == false) {
                 return 0;
             }
         }
 
-        if (!this._storage[ block ]) {
-            this._storage[ block ] = new Uint8Array(this.block_size);
+        try {
+            // 计算物理地址
+            const addr = this._getPhysicalAddress(block, off);
+            
+            // 获取要写入的数据
+            const data = new Uint8Array(Module.HEAPU8.buffer, buffer, size);
+            
+            // 写入数据
+            await this.i2c.WriteData(addr, data, true);
+            
+            return 0;
+        } catch (error) {
+            console.error("EEPROM write error:", error);
+            return -1;
         }
-
-        this._storage[ block ].set(
-            new Uint8Array(Module.HEAPU8.buffer, buffer, size),
-            off);
-        return 0;
     }
-    async erase (block) {
+
+    // 擦除块
+    async erase(block) {
         if (this.onerase) {
             this.onerase(block);
         }
 
-        delete this._storage[ block ];
-        return 0;
+        try {
+            // 计算块的起始地址
+            const addr = this._getPhysicalAddress(block, 0);
+            
+            // 创建全0xFF的数据（擦除状态）
+            const eraseData = new Uint8Array(this.block_size).fill(0xFF);
+            
+            // 写入擦除数据
+            await this.i2c.WriteData(addr, eraseData, true);
+            
+            return 0;
+        } catch (error) {
+            console.error("EEPROM erase error:", error);
+            return -1;
+        }
     }
+
 }
