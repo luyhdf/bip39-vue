@@ -3,7 +3,7 @@ import { CH341 } from "./CH341.js";
 import { I2C } from "./I2C.js";
 
 export class EEPROMBlockDevice extends BlockDevice {
-    constructor(i2c, block_size = 32, block_count = 128) {
+    constructor(i2c, block_size = 512, block_count = 64) {
         super();
         this.i2c = i2c;
         this.read_size = block_size;

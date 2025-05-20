@@ -64,7 +64,7 @@ export class I2C extends CH341 {
   }
 
   async setSpeed(speed) {
-    const command = new Uint8Array([I2C.I2C, I2C.SET | I2CSpeed[speed], I2C.END])
+    const command = new Uint8Array([I2C.I2C, I2C.SET | I2C.I2CSpeed[speed], I2C.END])
     await this.device.transferOut(this.endpointOut, command);
     const result = await this.receiveBytes()
     return (result[0] & I2C.OUT) == 0
@@ -166,7 +166,7 @@ export class I2C extends CH341 {
   Master Reads from a Slave
   1 Send a START
   2 Send I²C address of the SLAVE with the R/W bit low: Addresses the chip. 
-  The slave 7-bit address is ‘1101000’., so we will send: 11010000
+  The slave 7-bit address is '1101000'., so we will send: 11010000
   3 Send device register you want to read
   4 Send a START sequence again
   5 Send I²C address of the SLAVE with the R/W bit high
