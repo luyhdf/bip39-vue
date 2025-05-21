@@ -30,19 +30,59 @@ export class EEPROMBlockDevice extends BlockDevice {
         try {
             // 计算 EEPROM 地址
             const addr = block * this.block_size + off;
-            // 读取数据
-            const data = await this.i2c.ReadData(addr, size, true);
             
-            if (Array.isArray(data)) {
-                // 处理分块读取的情况
-                let offset = 0;
-                for (const chunk of data) {
-                    Module.HEAPU8.set(new Uint8Array(chunk), buffer + offset);
-                    offset += chunk.byteLength;
+            // 分页读取数据
+            let currentAddr = addr;
+            let remainingSize = size;
+            let bufferOffset = 0;
+            const chunks = [];
+
+            while (remainingSize > 0) {
+                // 计算当前页的剩余空间
+                const pageOffset = currentAddr % this.page_size;
+                const pageRemaining = this.page_size - pageOffset;
+                
+                // 计算本次读取的大小
+                const readSize = Math.min(remainingSize, pageRemaining);
+                
+                // 读取当前页的数据
+                const pageData = await this.i2c.ReadData(currentAddr, readSize, true);
+                // console.log("原始读取数据:", pageData);
+                
+                // 获取数组中的实际数据并转换为Uint8Array
+                const actualData = new Uint8Array(pageData[0]);
+                // console.log("处理后的数据:", actualData);
+                
+                if (actualData.length === 0) {
+                    console.error("读取数据为空");
+                    return -1;
                 }
-            } else {
-                Module.HEAPU8.set(new Uint8Array(data), buffer);
+                
+                chunks.push(actualData);
+                
+                // 打印分页数据
+                // const hexValues = Array.from(actualData).map(byte => '0x' + byte.toString(16).padStart(2, '0'));
+                // console.log(`读取页: 地址 0x${currentAddr.toString(16)}, 大小 ${readSize} 字节数据:`, hexValues.join(' '));
+
+                // 更新地址和大小
+                currentAddr += readSize;
+                bufferOffset += readSize;
+                remainingSize -= readSize;
             }
+            
+            // 格式化hex打印chunks
+            const hexValues = chunks.map(chunk => Array.from(chunk).map(byte => '0x' + byte.toString(16).padStart(2, '0')).join(' ')).join('');
+            console.log("数据:", hexValues);
+
+            // 将所有分页数据合并到buffer中
+            let offset = 0;
+            for (const chunk of chunks) {
+                for (let i = 0; i < chunk.length; i++) {
+                    Module.HEAPU8[buffer + offset] = chunk[i];
+                    offset += 1;
+                }
+            }
+            
             return 0;
         } catch (error) {
             console.error("EEPROM read error:", error);
@@ -63,8 +103,43 @@ export class EEPROMBlockDevice extends BlockDevice {
             const addr = block * this.block_size + off;
             // 从 HEAP 中获取数据
             const data = new Uint8Array(Module.HEAPU8.buffer, buffer, size);
-            // 写入数据
-            await this.i2c.WriteData(addr, data, true);
+            
+            // 打印写入的数据
+            console.log("EEPROM 写入数据:");
+            console.log("地址:", "0x" + addr.toString(16));
+            console.log("大小:", size, "字节");
+            const hexValues = Array.from(data).map(byte => '0x' + byte.toString(16).padStart(2, '0'));
+            console.log("数据:", hexValues.join(' '));
+            
+            // 处理跨页写入
+            let currentAddr = addr;
+            let remainingSize = size;
+            let dataOffset = 0;
+            
+            while (remainingSize > 0) {
+                // 计算当前页的剩余空间
+                const pageOffset = currentAddr % this.page_size;
+                const pageRemaining = this.page_size - pageOffset;
+                
+                // 计算本次写入的大小
+                const writeSize = Math.min(remainingSize, pageRemaining);
+                
+                // 写入当前页的数据
+                const pageData = data.slice(dataOffset, dataOffset + writeSize);
+                await this.i2c.WriteData(currentAddr, pageData, true);
+                
+                // 打印分页数据
+                // const hexValues = Array.from(pageData).map(byte => '0x' + byte.toString(16).padStart(2, '0'));
+                // console.log(`写入页: 地址 0x${currentAddr.toString(16)}, 大小 ${writeSize} 字节数据:`, hexValues.join(' '));
+
+                // 更新地址和大小
+                currentAddr += writeSize;
+                dataOffset += writeSize;
+                remainingSize -= writeSize;
+                
+              
+            }
+            
             return 0;
         } catch (error) {
             console.error("EEPROM write error:", error);
