@@ -170,7 +170,14 @@ export class CH341 {
   
     async exit() {
       console.log('exit');
-      await this.device.close();
+      if (this.device) {
+        try {
+          await this.device.close();
+          this.device = null;
+        } catch (error) {
+          console.error("关闭设备时出错:", error);
+        }
+      }
     }
   
     async wait(ms) {

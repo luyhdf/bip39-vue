@@ -161,4 +161,14 @@ export class EEPROMBlockDevice extends BlockDevice {
         // EEPROM 写入是即时的，不需要同步
         return 0;
     }
+
+    async cleanup() {
+        try {
+            if (this.i2c && this.i2c.device) {
+                await this.i2c.exit();
+            }
+        } catch (error) {
+            console.error("清理资源时出错:", error);
+        }
+    }
 }
