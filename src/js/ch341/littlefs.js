@@ -1,6 +1,7 @@
 import { BlockDevice } from "../littlefs/lfs_js.js";
 import { CH341 } from "./CH341.js";
 import { I2C } from "./I2C.js";
+import { LFSModule as Module } from "../littlefs/lfs_js.js";
 
 export class EEPROMBlockDevice extends BlockDevice {
     constructor(i2c, block_size = 512, block_count = 64) {
@@ -27,13 +28,11 @@ export class EEPROMBlockDevice extends BlockDevice {
         }
 
         try {
-            // 计算物理地址
-            const addr = this._getPhysicalAddress(block, off);
-            
+            // 计算 EEPROM 地址
+            const addr = block * this.block_size + off;
             // 读取数据
             const data = await this.i2c.ReadData(addr, size, true);
             
-            // 将数据复制到目标缓冲区
             if (Array.isArray(data)) {
                 // 处理分块读取的情况
                 let offset = 0;
@@ -44,7 +43,6 @@ export class EEPROMBlockDevice extends BlockDevice {
             } else {
                 Module.HEAPU8.set(new Uint8Array(data), buffer);
             }
-            
             return 0;
         } catch (error) {
             console.error("EEPROM read error:", error);
@@ -61,15 +59,12 @@ export class EEPROMBlockDevice extends BlockDevice {
         }
 
         try {
-            // 计算物理地址
-            const addr = this._getPhysicalAddress(block, off);
-            
-            // 获取要写入的数据
+            // 计算 EEPROM 地址
+            const addr = block * this.block_size + off;
+            // 从 HEAP 中获取数据
             const data = new Uint8Array(Module.HEAPU8.buffer, buffer, size);
-            
             // 写入数据
             await this.i2c.WriteData(addr, data, true);
-            
             return 0;
         } catch (error) {
             console.error("EEPROM write error:", error);
@@ -83,21 +78,12 @@ export class EEPROMBlockDevice extends BlockDevice {
             this.onerase(block);
         }
 
-        try {
-            // 计算块的起始地址
-            const addr = this._getPhysicalAddress(block, 0);
-            
-            // 创建全0xFF的数据（擦除状态）
-            const eraseData = new Uint8Array(this.block_size).fill(0xFF);
-            
-            // 写入擦除数据
-            await this.i2c.WriteData(addr, eraseData, true);
-            
-            return 0;
-        } catch (error) {
-            console.error("EEPROM erase error:", error);
-            return -1;
-        }
+        // EEPROM 不需要显式擦除
+        return 0;
     }
 
+    async sync() {
+        // EEPROM 写入是即时的，不需要同步
+        return 0;
+    }
 }
