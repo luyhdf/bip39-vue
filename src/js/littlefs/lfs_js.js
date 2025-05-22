@@ -486,11 +486,7 @@ class LFSFile {
      */
     async write (data) {
         let buffer = _malloc(data.length);
-        let i = 0;
-        while (i < data.length) {
-            Module.HEAPU8[ buffer + i ] = data[ i ];
-            i++;
-        }
+        Module.HEAPU8.set(data, buffer);
 
         let res = await _lfs_file_write(this.lfs._lfs, this._file, buffer, data.length);
         _free(buffer);

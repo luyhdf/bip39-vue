@@ -77,10 +77,8 @@ export class EEPROMBlockDevice extends BlockDevice {
             // 将所有分页数据合并到buffer中
             let offset = 0;
             for (const chunk of chunks) {
-                for (let i = 0; i < chunk.length; i++) {
-                    Module.HEAPU8[buffer + offset] = chunk[i];
-                    offset += 1;
-                }
+                Module.HEAPU8.set(chunk, buffer + offset);
+                offset += chunk.length;
             }
             
             return 0;
