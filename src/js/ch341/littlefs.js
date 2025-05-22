@@ -72,7 +72,7 @@ export class EEPROMBlockDevice extends BlockDevice {
             
             // 格式化hex打印chunks
             const hexValues = chunks.map(chunk => Array.from(chunk).map(byte => '0x' + byte.toString(16).padStart(2, '0')).join(' ')).join('');
-            console.log("数据:", hexValues);
+            console.log(`读出数据,地址:${addr} 字节:${size}`, hexValues);
 
             // 将所有分页数据合并到buffer中
             let offset = 0;
@@ -105,11 +105,11 @@ export class EEPROMBlockDevice extends BlockDevice {
             const data = new Uint8Array(Module.HEAPU8.buffer, buffer, size);
             
             // 打印写入的数据
-            console.log("EEPROM 写入数据:");
-            console.log("地址:", "0x" + addr.toString(16));
-            console.log("大小:", size, "字节");
+            // console.log("EEPROM 写入数据:");
+            // console.log("地址:", "0x" + addr.toString(16));
+            // console.log("大小:", size, "字节");
             const hexValues = Array.from(data).map(byte => '0x' + byte.toString(16).padStart(2, '0'));
-            console.log("数据:", hexValues.join(' '));
+            console.log(`写入数据,地址:${addr} 字节:${size}`, hexValues.join(' '));
             
             // 处理跨页写入
             let currentAddr = addr;
