@@ -46,6 +46,7 @@
 
         async function testEEPROM() {
             try {
+                let err = 0;
                 // 初始化 CH341
                 log("初始化 CH341...");
                 const ch341 = new CH341();
@@ -61,7 +62,6 @@
                 const i2c = new I2C();
                 await i2c.open(device);
                 i2c.setAddr(0x50);  // EEPROM 地址
-                // await i2c.setSpeed(400);  // 使用 400KHz
                 log("I2C 初始化完成");
 
                 // 创建 EEPROM 块设备
@@ -83,7 +83,11 @@
 
                 // 挂载文件系统
                 log("挂载文件系统...");
-                await lfs.mount();
+                err = await lfs.mount();
+                if (err !== 0) {
+                    log("挂载失败: " + err);
+                    return;
+                }
                 log("挂载完成");
 
                 // // 写入测试文件

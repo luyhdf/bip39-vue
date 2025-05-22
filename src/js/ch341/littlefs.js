@@ -1,6 +1,6 @@
 import { BlockDevice } from "../littlefs/lfs_js.js";
-import { CH341 } from "./CH341.js";
-import { I2C } from "./I2C.js";
+// import { CH341 } from "./CH341.js";
+// import { I2C } from "./I2C.js";
 import { LFSModule as Module } from "../littlefs/lfs_js.js";
 
 export class EEPROMBlockDevice extends BlockDevice {
