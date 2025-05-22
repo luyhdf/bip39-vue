@@ -462,7 +462,10 @@ class LFSFile {
      */
     async read (size) {
         if (!size) {
-            size = this.size();
+            size = await this.size();
+            if (size < 0) {
+                return size;
+            }
         }
 
         let buffer = _malloc(size);
