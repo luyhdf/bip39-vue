@@ -31,55 +31,22 @@ export class EEPROMBlockDevice extends BlockDevice {
             // 计算 EEPROM 地址
             const addr = block * this.block_size + off;
             
-            // 分页读取数据
-            let currentAddr = addr;
-            let remainingSize = size;
-            let bufferOffset = 0;
-            const chunks = [];
-
-            while (remainingSize > 0) {
-                // 计算当前页的剩余空间
-                const pageOffset = currentAddr % this.page_size;
-                const pageRemaining = this.page_size - pageOffset;
-                
-                // 计算本次读取的大小
-                const readSize = Math.min(remainingSize, pageRemaining);
-                
-                // 读取当前页的数据
-                const pageData = await this.i2c.ReadData(currentAddr, readSize, true);
-                // console.log("原始读取数据:", pageData);
-                
-                // 获取数组中的实际数据并转换为Uint8Array
-                const actualData = new Uint8Array(pageData[0]);
-                // console.log("处理后的数据:", actualData);
-                
-                if (actualData.length === 0) {
-                    console.error("读取数据为空");
-                    return -1;
-                }
-                
-                chunks.push(actualData);
-                
-                // 打印分页数据
-                // const hexValues = Array.from(actualData).map(byte => '0x' + byte.toString(16).padStart(2, '0'));
-                // console.log(`读取页: 地址 0x${currentAddr.toString(16)}, 大小 ${readSize} 字节数据:`, hexValues.join(' '));
-
-                // 更新地址和大小
-                currentAddr += readSize;
-                bufferOffset += readSize;
-                remainingSize -= readSize;
+            // 读取数据
+            const pageData = await this.i2c.ReadData(addr, size, true);
+            if (!pageData || pageData.length === 0) {
+                console.error("读取数据为空");
+                return -1;
             }
             
-            // 格式化hex打印chunks
-            const hexValues = chunks.map(chunk => Array.from(chunk).map(byte => '0x' + byte.toString(16).padStart(2, '0')).join(' ')).join('');
-            console.log(`读出数据,地址:${addr} 字节:${size}`, hexValues);
+            // 获取数组中的实际数据并转换为Uint8Array
+            const actualData = new Uint8Array(pageData[0]);
+            
+            // 打印读取的数据
+            const hexValues = Array.from(actualData).map(byte => '0x' + byte.toString(16).padStart(2, '0'));
+            console.log(`读出数据,地址:${addr} 字节:${size}`, hexValues.join(' '));
 
-            // 将所有分页数据合并到buffer中
-            let offset = 0;
-            for (const chunk of chunks) {
-                Module.HEAPU8.set(chunk, buffer + offset);
-                offset += chunk.length;
-            }
+            // 将数据复制到buffer
+            Module.HEAPU8.set(actualData, buffer);
             
             return 0;
         } catch (error) {
