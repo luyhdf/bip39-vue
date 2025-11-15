@@ -1,4 +1,5 @@
 文件来源：https://github.com/iancoleman/jsbip39
+添加 index.js 文件，用于导入库文件并创建全局变量。
 
 # jsBIP39
 
