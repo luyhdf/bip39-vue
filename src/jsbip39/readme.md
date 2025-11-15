@@ -1,3 +1,5 @@
+文件来源：https://github.com/iancoleman/jsbip39
+
 # jsBIP39
 
 Ported from the reference implementation at https://github.com/trezor/python-mnemonic
