@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import MnemonicDisplay from './bip39/Mnemonic.vue'
+import * as bip39 from 'bip39'
 
 defineProps({
   msg: String
@@ -18,7 +19,7 @@ const updateSuggestions = (input) => {
     suggestions.value = []
     return
   }
-  suggestions.value = WORDLISTS.english.filter(word =>
+  suggestions.value = bip39.wordlists.english.filter(word =>
     word.startsWith(input.toLowerCase())
   ).slice(0, 8)
 }
@@ -27,7 +28,7 @@ const handleInput = () => {
   // 只保留字母，转换为小写
   currentInput.value = currentInput.value.replace(/[^a-zA-Z]/g, '').toLowerCase()
   // 检查输入的前几个字母是否在词库中
-  isWordValid.value = WORDLISTS.english.some(word => word.startsWith(currentInput.value))
+  isWordValid.value = bip39.wordlists.english.some(word => word.startsWith(currentInput.value))
   updateSuggestions(currentInput.value)
 }
 
@@ -42,7 +43,7 @@ const handleKeyDown = (event) => {
     if (suggestions.value.length > 0) {
       // 如果有候选词，使用当前选中的候选词
       const selectedWord = suggestions.value[currentWordIndex.value]
-      if (WORDLISTS.english.includes(selectedWord)) {
+      if (bip39.wordlists.english.includes(selectedWord)) {
         inputWords.value.push(selectedWord)
         currentInput.value = ''
         suggestions.value = []
@@ -51,7 +52,7 @@ const handleKeyDown = (event) => {
     } else if (currentInput.value) {
       // 如果没有候选词，使用当前输入
       const word = currentInput.value.trim()
-      if (WORDLISTS.english.includes(word)) {
+      if (bip39.wordlists.english.includes(word)) {
         inputWords.value.push(word)
         currentInput.value = ''
         suggestions.value = []

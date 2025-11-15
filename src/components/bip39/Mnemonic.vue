@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
+import * as bip39 from 'bip39'
 
 const props = defineProps({
   wordCount: {
@@ -16,8 +17,7 @@ const activeTab = ref('list') // 当前激活的标签页：list-列表形式，
 
 const generateMnemonic = () => {
   const strength = props.wordCount === 12 ? 128 : 256
-  const mnemonicObj = new Mnemonic("english")
-  const mnemonicStr = mnemonicObj.generate(strength)
+  const mnemonicStr = bip39.generateMnemonic(strength)
   words.value = mnemonicStr.split(' ')
   checkMnemonicValidity()
 }
@@ -29,8 +29,7 @@ const checkMnemonicValidity = () => {
   }
 
   const mnemonic = words.value.join(' ')
-  const mnemonicObj = new Mnemonic("english")
-  isValid.value = mnemonicObj.check(mnemonic)
+  isValid.value = bip39.validateMnemonic(mnemonic)
 }
 
 const clearMnemonic = () => {
@@ -49,7 +48,7 @@ const pasteFromClipboard = async () => {
     }
 
     // 检查所有单词是否都在词表中
-    const invalidWords = newWords.filter(word => !WORDLISTS.english.includes(word))
+    const invalidWords = newWords.filter(word => !bip39.wordlists.english.includes(word))
     if (invalidWords.length > 0) {
       return
     }
