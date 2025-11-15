@@ -1,3 +1,6 @@
+# 开发
+`pnpm install`
+`pnpm run dev`
 # 打包
 `pnpm run build`
 会编译至docs文件夹，
