@@ -4,7 +4,7 @@
 // import HelloWorld from './components/HelloWorld.vue'
 import BIP39 from './components/BIP39.vue'
 
-const isSingleFile = window.location.pathname.includes('singleHtml')
+const isSingleFile = !window.location.pathname.includes('bip39-vue')
 
 const downloadSingleFile = async () => {
   try {
@@ -30,10 +30,12 @@ const downloadSingleFile = async () => {
       <span>当前为</span>
       <span v-if="isSingleFile" class="version-tag offline">单HTML文件版本</span>
       <span v-else class="version-tag online">在线版本</span>
-      <span class="separator">|</span>
-      <span>可点击下载</span>
-      <button @click="downloadSingleFile" class="download-btn">单HTML文件</button>
-      <span>下载后，建议在无网络环境下双击HTML文件使用</span>
+      <template v-if="!isSingleFile">
+        <span class="separator">|</span>
+        <span>可点击下载</span>
+        <button @click="downloadSingleFile" class="download-btn">单HTML文件</button>
+        <span>下载后，建议在无网络环境下双击HTML文件使用</span>
+      </template>
     </div>
   </div>
   <div class="main-content">
